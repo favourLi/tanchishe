@@ -9,6 +9,8 @@
     <script src="jquery.js"></script>
     <script>
         $(function () {
+          var grades=0;
+          $('.grade').text(grades);
             $('.shiwu').animate({opacity:0.5},500,function () {
                 $(this).animate({opacity:1},500)
             });
@@ -29,17 +31,18 @@
                     tru[v.x+'_'+v.y]=true;
                 })
             }
+
             make();
 
             dire='you';
             biao={37:'zuo',38:'shang',39:'you',40:'xia'};
             fan={'zuo':37,'shang':38,'you':39,'xia':40};
+            jiu = she[she.length-1];
             move = function() {
 
                 jiu = she[she.length-1];
                 if(dire=='you'){
                     xin={x:jiu.x,y:jiu.y+1};
-
                 }
                 if(dire=='xia'){
                     xin={x:jiu.x+1,y:jiu.y};
@@ -50,14 +53,12 @@
                 if(dire=='shang'){
                     xin={x:jiu.x-1,y:jiu.y};
                 }
+                finds(jiu).removeClass('tou');
+                finds(xin).addClass('tou');
                 if(tru[xin.x+'_'+xin.y]){
-                    alert('撞到自己了');
-                    clearInterval(t);
-                    if(confirm('是否重新开始游戏？')){
-                        $('.she').removeClass('she');
-                        make();
-                        t=setInterval(move,100);
-                    }
+                  clearInterval(t);
+                    $('.fail').fadeIn();
+                    $('.fail-words').text('死因：撞到自己了啊啊啊！！！')
                 }
                 wen=she[0];
                 she.push(xin);
@@ -68,19 +69,19 @@
                 $(finds(xin)).addClass('she');
                 if(xin.x<0||xin.y<0||xin.x>29||xin.y>39){
                     clearInterval(t);
-                    alert('撞死了，亲！')
-                    if(confirm('是否重新开始游戏？')){
-                        $('.she').removeClass('she');
-                        make();
-                        t=setInterval(move,100);
-                    }
+                    $('.fail').fadeIn();
+                    $('.fail-words').html('死因：撞墙了啊啊啊<span>！！！</span>')
                 }
                 if(xin.x==shiwu.x&&xin.y==shiwu.y){
                     $('.shiwu').removeClass('shiwu');
                     shi();
                     she.unshift(wen);
+                    grades+=10;
+                    $('.grade').text(grades);
                 }
             }
+
+            finds(jiu).addClass('tou');
             $(document).on('keyup',function (e) {
                 if(Math.abs(e.keyCode-fan[dire])==2){
                     return
@@ -98,7 +99,19 @@
                 }
                 move()
             })
-            var t=setInterval(move,100);
+
+            function star(){
+              if(flag){
+                t=setInterval(move,100);
+              }else{
+                clearInterval(t);
+              }
+              flag=!flag;
+            }
+
+            var flag=true;
+            $('.start').on('click',star)
+
             shi=function () {
                 do{
                     var sy=Math.floor(Math.random()*40);
@@ -107,10 +120,39 @@
                 shiwu={x:sx,y:sy};
                 finds(shiwu).addClass('shiwu')
             }
+
             shi();
+
+            function restar(){
+              $('.she').removeClass('she');
+              $('.shiwu').removeClass('shiwu');
+              var she=[];
+              var tru={};
+              flag=true;
+              clearInterval(t);
+              make();
+              star();
+              shi();
+              grades=0;
+              $('.grade').text(grades);
+              $('.tou').removeClass('tou');
+              $('.fail').fadeOut();
+              $('.over').fadeOut();
+            };
+
+            $('.restart').on('click',restar);
+            $('.yes').on('click',restar);
+            $('.no').on('click',function(){
+              $('.fail').fadeOut();
+              $('.over').fadeIn();
+              $('.over span').text(grades);
+            })
         })
     </script>
     <style>
+        *{
+          text-align: center;
+        }
         .big{
             position: fixed;
             left:0;
@@ -123,9 +165,9 @@
         .box{
             width:800px;
             height:600px;
-            margin:150px auto;
-            background: url("1.jpg");
+            /*background: url("1.jpg");*/
             background-size: 100% 100%;
+            float: left;
         }
         .box div{
             width:20px;
@@ -134,21 +176,186 @@
             float: left;
         }
         .she{
-            background: red;
-            border-radius: 8px;
+            background: #ffff00;
+            border-radius: 50%;
+        }
+        @keyframes shan {
+          0%{
+            transform: scale(1,1) rotate(30deg);
+          }
+          50%{
+            transform: scale(.8,.8) rotate(-30deg);
+          }
+          100%{
+            transform: scale(1,1) rotate(30deg);
+          }
         }
         .shiwu{
-            background: #dcdd21;;
+            background: url("shiwu.png")no-repeat center center/cover;
+            animation: shan 2s linear infinite;
+        }
+        .menu{
+          width: 198px;
+          height: 600px;
+          /*background: #fff;*/
+          float: left;
+          position: relative;
+          border-right:2px solid #fff;
+        }
+        .game{
+          width: 1000px;
+          height: 600px;
+          margin: 150px auto;
+          background: url("back.jpg") no-repeat center center/cover;
+        }
+        .start{
+          width: 100px;
+          height: 30px;
+          position: absolute;
+          left: 50px;
+          line-height: 30px;
+          top: 300px;
+          background: url("2.png") no-repeat center center/cover;
+        }
+        .restart{
+          width: 100px;
+          height: 30px;
+          position: absolute;
+          left: 50px;
+          line-height: 30px;
+          top: 450px;
+          background: url("3.png") no-repeat center center/cover;
+        }
+        .grade{
+          width: 100px;
+          height: 30px;
+          position: absolute;
+          left: 50px;
+          top: 150px;
+          line-height: 30px;
+          background: url("4.png") no-repeat center center/cover;
+        }
+        .box .fail{
+          display: none;
+          z-index: 555;
+          width: 400px;
+          height: 200px;
+          background: #fff;
+          position: absolute;
+          margin: 200px;
+          background: #45eee7;
+          box-shadow: 5px 5px 20px #000,
+                      0px 0px 40px #333 inset;
+        }
+        .box .fail-words{
+          width: 250px;
+          height: 50px;
+          margin: 30px 100px;
+          position: absolute;
+          line-height: 50px;
+        }
+        .fail-words span{
+          color: red;
+          font-size: 30px;
+        }
+        .box .re{
+          width: 300px;
+          height: 100px;
+          position: absolute;
+          left: 50px;
+          top: 86px;
+        }
+        .box .re span{
+          display: block;
+          width: 100%;
+          height: 30px;
+          line-height: 30px;
+          font-size: 12px;
+        }
+        .box .yes{
+          width: 100px;
+          height: 40px;
+          position: absolute;
+          bottom: 15px;
+          left: 30px;
+          line-height: 40px;
+          background: url("bac.png") no-repeat center center/contain;
+        }
+        .box .no{
+          width: 100px;
+          height: 40px;
+          line-height: 40px;
+          position: absolute;
+          bottom: 15px;
+          right: 30px;
+          background: url("bac.png") no-repeat center center/contain;
+
+        }
+        .big .tou{
+          background: url("xin.png") no-repeat -1px -3px/131% 124%;
+        }
+        .big .over{
+          display: none;
+          width: 400px;
+          height: 200px;
+          background: #333;
+          color: red;
+          font-size: 50px;
+          line-height: 200px;
+          position: absolute;
+          margin: 200px;
+          box-shadow: 5px 5px 40px #000,
+            0 0 40px #fff inset;
+            z-index: 555;
+        }
+        .big .max-grade{
+          width: 200px;
+          height: 40px;
+          position: absolute;
+          left: 100px;
+          bottom: 100px;
+          font-size: 14px;
+
         }
     </style>
 </head>
 <body>
-<audio src="久石譲 - Summer.mp3" autoplay id="music"></audio>
-
+<!-- <audio src="久石譲 - Summer.mp3" autoplay id="music"></audio> -->
     <div class="big">
-        <div class="box">
-            
+      <div class="game">
+        <div class="menu">
+            <div class="start">
+              START
+            </div>
+            <div class="restart">
+              RESTART
+            </div>
+            <div class="grade">
+
+            </div>
         </div>
+          <div class="box">
+            <div class="fail">
+              <div class="fail-words">
+              </div>
+              <div class="re">
+                <span>CONTINUE?</span>
+                <div class="yes">
+                  YES
+                </div>
+                <div class="no">
+                  NO
+                </div>
+              </div>
+            </div>
+            <div class="over">
+              GAME  OVER!
+              <div class="max-grade">
+                最高分：<span></span>
+              </div>
+            </div>
+          </div>
+      </div>
     </div>
 </body>
 </html>
